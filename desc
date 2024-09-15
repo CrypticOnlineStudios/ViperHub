@@ -1,0 +1,118 @@
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local player = Players.LocalPlayer
+local mouse = player:GetMouse()
+local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+local dragFrame = Instance.new("Frame")
+local keyBox = Instance.new("TextBox")
+local keySubmit = Instance.new("TextButton")
+local copyKeyButton = Instance.new("TextButton")
+local minimizeButton = Instance.new("TextButton")
+local closeButton = Instance.new("TextButton")
+local secondBox = Instance.new("Frame")
+
+-- Config
+local correctKey = "vipersigma123"
+local fadeDuration = 1
+local clipboardKey = "vipersigma123"
+
+-- Styling
+dragFrame.Size = UDim2.new(0, 300, 0, 200)
+dragFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
+dragFrame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+dragFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+dragFrame.Visible = true
+dragFrame.Draggable = true
+dragFrame.Active = true
+dragFrame.Parent = gui
+dragFrame.BackgroundTransparency = 1
+
+keyBox.Size = UDim2.new(0, 200, 0, 50)
+keyBox.Position = UDim2.new(0.5, -100, 0.4, 0)
+keyBox.Text = "Enter Key"
+keyBox.Parent = dragFrame
+
+keySubmit.Size = UDim2.new(0, 100, 0, 50)
+keySubmit.Position = UDim2.new(0.5, -50, 0.6, 0)
+keySubmit.Text = "Submit"
+keySubmit.Parent = dragFrame
+
+copyKeyButton.Size = UDim2.new(0, 200, 0, 50)
+copyKeyButton.Position = UDim2.new(0.5, -100, 0.8, 0)
+copyKeyButton.Text = "Copy Key Access"
+copyKeyButton.Parent = dragFrame
+
+minimizeButton.Size = UDim2.new(0, 30, 0, 30)
+minimizeButton.Position = UDim2.new(1, -65, 0, 5)
+minimizeButton.Text = "-"
+minimizeButton.Parent = secondBox
+
+closeButton.Size = UDim2.new(0, 30, 0, 30)
+closeButton.Position = UDim2.new(1, -30, 0, 5)
+closeButton.Text = "X"
+closeButton.Parent = secondBox
+
+secondBox.Size = UDim2.new(0, 300, 0, 200)
+secondBox.Position = UDim2.new(0.5, -150, 0.5, -100)
+secondBox.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+secondBox.AnchorPoint = Vector2.new(0.5, 0.5)
+secondBox.Visible = false
+secondBox.Draggable = true
+secondBox.Active = true
+secondBox.Parent = gui
+secondBox.BackgroundTransparency = 1
+
+-- Functions
+local function fadeIn(frame)
+	local tween = TweenService:Create(frame, TweenInfo.new(fadeDuration), {BackgroundTransparency = 0})
+	tween:Play()
+end
+
+local function fadeOut(frame, callback)
+	local tween = TweenService:Create(frame, TweenInfo.new(fadeDuration), {BackgroundTransparency = 1})
+	tween:Play()
+	tween.Completed:Connect(function()
+		frame.Visible = false
+		if callback then callback() end
+	end)
+end
+
+local function showSecondBox()
+	secondBox.Visible = true
+	fadeIn(secondBox)
+end
+
+-- Copy key to clipboard
+copyKeyButton.MouseButton1Click:Connect(function()
+	setclipboard(clipboardKey)
+end)
+
+-- Check for key submission
+keySubmit.MouseButton1Click:Connect(function()
+	if keyBox.Text == correctKey then
+		fadeOut(dragFrame, function()
+			showSecondBox()
+		end)
+	end
+end)
+
+-- Minimize functionality
+local isMinimized = false
+minimizeButton.MouseButton1Click:Connect(function()
+	if not isMinimized then
+		secondBox:TweenSize(UDim2.new(0, 300, 0, 30), "Out", "Quad", fadeDuration)
+	else
+		secondBox:TweenSize(UDim2.new(0, 300, 0, 200), "Out", "Quad", fadeDuration)
+	end
+	isMinimized = not isMinimized
+end)
+
+-- Close functionality
+closeButton.MouseButton1Click:Connect(function()
+	secondBox:Destroy()
+end)
+
+-- Initial fade-in
+dragFrame.Visible = true
+fadeIn(dragFrame)
