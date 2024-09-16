@@ -10,7 +10,7 @@ local Window = Rayfield:CreateWindow({
       FileName = "Example Hub"
    },
    Discord = {
-      Enabled = false,
+      Enabled = true,
       Invite = "zenon",
       RememberJoins = true -- Set this to false to make them join the discord every time they load it up
    },
