@@ -1,145 +1,139 @@
-local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
-local player = Players.LocalPlayer
-local mouse = player:GetMouse()
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
--- GUI setup
-local gui = Instance.new("ScreenGui")
-gui.Name = "PersistentGUI"
-gui.ResetOnSpawn = false -- This ensures it persists after death
-gui.Parent = player:WaitForChild("PlayerGui")
+local Window = Rayfield:CreateWindow({
+   Name = "Viper 🐍",
+   LoadingTitle = "Loading…",
+   LoadingSubtitle = "Loading Assets…",
+   ConfigurationSaving = {
+      Enabled = false,
+      FolderName = nil, -- Create a custom folder for your hub/game
+      FileName = "Example Hub"
+   },
+   Discord = {
+      Enabled = true,
+      Invite = "zenon",
+      RememberJoins = true -- Set this to false to make them join the discord every time they load it up
+   },
+   KeySystem = true, -- Set this to true to use our key system
+   KeySettings = {
+      Title = "Key",
+      Subtitle = "Key System",
+      Note = "Key In Discord Server",
+      FileName = "YoutubeHubKey1", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
+      SaveKey = false, -- The user's key will be saved, but if you change the key, they will be unable to use your script
+      GrabKeyFromSite = true, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
+      Key = {"https://pastebin.com/raw/AtgzSPWK"}
+   }
+})
 
--- Main frame and key box UI elements
-local dragFrame = Instance.new("Frame")
-local keyBox = Instance.new("TextBox")
-local keySubmit = Instance.new("TextButton")
-local copyKeyButton = Instance.new("TextButton")
-local secondBox = Instance.new("Frame")
-local minimizeButton = Instance.new("TextButton")
-local closeButton = Instance.new("TextButton")
+local MainTab = Window:CreateTab("🏠 Home", nil) -- Title, Image
+local MainSection = MainTab:CreateSection("Main")
 
--- Configurations
-local correctKey = "vipersigma123"
-local fadeDuration = 0.5
-local clipboardKey = "vipersigma123"
+Rayfield:Notify({
+   Title = "Successfully Executed Script",
+   Content = "Script Is Working",
+   Duration = 4,
+   Image = 13047715178,
+   Actions = { -- Notification Buttons
+      Ignore = {
+         Name = "Okay!",
+         Callback = function()
+         print("The user tapped Okay!")
+      end
+   },
+},
+})
 
--- Styling for modern and smooth design
-local function applyModernStyling(frame, radius, bgColor)
-	frame.BackgroundColor3 = bgColor or Color3.fromRGB(45, 45, 45)
-	frame.BorderSizePixel = 0
-	frame.ClipsDescendants = true -- Rounded corners effect
-	frame.Visible = false
-	frame.AnchorPoint = Vector2.new(0.5, 0.5)
-	frame.Position = UDim2.new(0.5, 0, 0.5, 0)
+local Button = MainTab:CreateButton({
+   Name = "Infinite Jump Toggle",
+   Callback = function()
+       --Toggles the infinite jump between on or off on every script run
+_G.infinjump = not _G.infinjump
 
-	local uicorner = Instance.new("UICorner")
-	uicorner.CornerRadius = UDim.new(0, radius)
-	uicorner.Parent = frame
-end
+if _G.infinJumpStarted == nil then
+	--Ensures this only runs once to save resources
+	_G.infinJumpStarted = true
+	
+	--Notifies readiness
+	game.StarterGui:SetCore("SendNotification", {Title="Youtube Hub"; Text="Infinite Jump Activated!"; Duration=5;})
 
--- Setup initial box
-applyModernStyling(dragFrame, 10)
-dragFrame.Size = UDim2.new(0, 350, 0, 200)
-dragFrame.Parent = gui
-dragFrame.Draggable = true
-dragFrame.Active = true
-
--- KeyBox styling
-keyBox.Size = UDim2.new(0, 300, 0, 40)
-keyBox.Position = UDim2.new(0.5, 0, 0.3, 0)
-keyBox.AnchorPoint = Vector2.new(0.5, 0.5)
-keyBox.Text = "Enter Key"
-keyBox.BackgroundTransparency = 0.1
-keyBox.TextSize = 18
-applyModernStyling(keyBox, 8)
-keyBox.Parent = dragFrame
-
--- Key submit button
-keySubmit.Size = UDim2.new(0, 150, 0, 40)
-keySubmit.Position = UDim2.new(0.5, 0, 0.55, 0)
-keySubmit.AnchorPoint = Vector2.new(0.5, 0.5)
-keySubmit.Text = "Submit"
-applyModernStyling(keySubmit, 8)
-keySubmit.Parent = dragFrame
-
--- Copy key button
-copyKeyButton.Size = UDim2.new(0, 200, 0, 40)
-copyKeyButton.Position = UDim2.new(0.5, 0, 0.8, 0)
-copyKeyButton.AnchorPoint = Vector2.new(0.5, 0.5)
-copyKeyButton.Text = "Copy Key Access"
-applyModernStyling(copyKeyButton, 8)
-copyKeyButton.Parent = dragFrame
-
--- Second box styling
-applyModernStyling(secondBox, 10)
-secondBox.Size = UDim2.new(0, 350, 0, 200)
-secondBox.Parent = gui
-secondBox.Draggable = true
-secondBox.Active = true
-
--- Minimize and close buttons
-minimizeButton.Size = UDim2.new(0, 30, 0, 30)
-minimizeButton.Position = UDim2.new(1, -60, 0, 10)
-minimizeButton.Text = "-"
-applyModernStyling(minimizeButton, 15)
-minimizeButton.Parent = secondBox
-
-closeButton.Size = UDim2.new(0, 30, 0, 30)
-closeButton.Position = UDim2.new(1, -20, 0, 10)
-closeButton.Text = "X"
-applyModernStyling(closeButton, 15)
-closeButton.Parent = secondBox
-
--- Functions for animations
-local function fadeIn(frame)
-	frame.Visible = true
-	TweenService:Create(frame, TweenInfo.new(fadeDuration), {BackgroundTransparency = 0}):Play()
-end
-
-local function fadeOut(frame, callback)
-	local tween = TweenService:Create(frame, TweenInfo.new(fadeDuration), {BackgroundTransparency = 1})
-	tween:Play()
-	tween.Completed:Connect(function()
-		frame.Visible = false
-		if callback then callback() end
+	--The actual infinite jump
+	local plr = game:GetService('Players').LocalPlayer
+	local m = plr:GetMouse()
+	m.KeyDown:connect(function(k)
+		if _G.infinjump then
+			if k:byte() == 32 then
+			humanoid = game:GetService'Players'.LocalPlayer.Character:FindFirstChildOfClass('Humanoid')
+			humanoid:ChangeState('Jumping')
+			wait()
+			humanoid:ChangeState('Seated')
+			end
+		end
 	end)
 end
+   end,
+})
 
-local function showSecondBox()
-	secondBox.Visible = true
-	fadeIn(secondBox)
-end
+local Slider = MainTab:CreateSlider({
+   Name = "WalkSpeed Slider",
+   Range = {1, 350},
+   Increment = 1,
+   Suffix = "Speed",
+   CurrentValue = 16,
+   Flag = "sliderws", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Callback = function(Value)
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = (Value)
+   end,
+})
 
--- Copy key functionality
-copyKeyButton.MouseButton1Click:Connect(function()
-	setclipboard(clipboardKey)
-end)
+local Slider = MainTab:CreateSlider({
+   Name = "JumpPower Slider",
+   Range = {1, 350},
+   Increment = 1,
+   Suffix = "Speed",
+   CurrentValue = 16,
+   Flag = "sliderjp", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Callback = function(Value)
+        game.Players.LocalPlayer.Character.Humanoid.JumpPower = (Value)
+   end,
+})
 
--- Key submission
-keySubmit.MouseButton1Click:Connect(function()
-	if keyBox.Text == correctKey then
-		fadeOut(dragFrame, function()
-			showSecondBox()
-		end)
-	end
-end)
+local Dropdown = MainTab:CreateDropdown({
+   Name = "Select Area",
+   Options = {"Starter World","Pirate Island","Pineapple Paradise"},
+   CurrentOption = {"Starter World"},
+   MultipleOptions = false,
+   Flag = "dropdownarea", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Callback = function(Option)
+        print(Option)
+   end,
+})
 
--- Minimize functionality
-local isMinimized = false
-minimizeButton.MouseButton1Click:Connect(function()
-	if not isMinimized then
-		secondBox:TweenSize(UDim2.new(0, 350, 0, 40), "Out", "Quad", fadeDuration)
-	else
-		secondBox:TweenSize(UDim2.new(0, 350, 0, 200), "Out", "Quad", fadeDuration)
-	end
-	isMinimized = not isMinimized
-end)
+local Input = MainTab:CreateInput({
+   Name = "Walkspeed",
+   PlaceholderText = "1-500",
+   RemoveTextAfterFocusLost = true,
+   Callback = function(Text)
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = (Text)
+   end,
+})
 
--- Close functionality
-closeButton.MouseButton1Click:Connect(function()
-	secondBox:Destroy()
-end)
+local OtherSection = MainTab:CreateSection("Other")
 
--- Initial fade-in
-fadeIn(dragFrame)
+local Toggle = MainTab:CreateToggle({
+   Name = "Auto Farm",
+   CurrentValue = false,
+   Flag = "Toggle1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Callback = function(Value)
+        print("FARMING")
+   end,
+})
+
+local TPTab = Window:CreateTab("Misc", nil) -- Title, Image
+
+local Button1 = TPTab:CreateButton({
+   Name = "Starter Island",
+   Callback = function()
+        --Teleport1
+   end,
+})
