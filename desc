@@ -3,70 +3,98 @@ local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 local mouse = player:GetMouse()
-local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+
+-- GUI setup
+local gui = Instance.new("ScreenGui")
+gui.Name = "PersistentGUI"
+gui.ResetOnSpawn = false -- This ensures it persists after death
+gui.Parent = player:WaitForChild("PlayerGui")
+
+-- Main frame and key box UI elements
 local dragFrame = Instance.new("Frame")
 local keyBox = Instance.new("TextBox")
 local keySubmit = Instance.new("TextButton")
 local copyKeyButton = Instance.new("TextButton")
+local secondBox = Instance.new("Frame")
 local minimizeButton = Instance.new("TextButton")
 local closeButton = Instance.new("TextButton")
-local secondBox = Instance.new("Frame")
 
--- Config
+-- Configurations
 local correctKey = "vipersigma123"
-local fadeDuration = 1
+local fadeDuration = 0.5
 local clipboardKey = "vipersigma123"
 
--- Styling
-dragFrame.Size = UDim2.new(0, 300, 0, 200)
-dragFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
-dragFrame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
-dragFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-dragFrame.Visible = true
+-- Styling for modern and smooth design
+local function applyModernStyling(frame, radius, bgColor)
+	frame.BackgroundColor3 = bgColor or Color3.fromRGB(45, 45, 45)
+	frame.BorderSizePixel = 0
+	frame.ClipsDescendants = true -- Rounded corners effect
+	frame.Visible = false
+	frame.AnchorPoint = Vector2.new(0.5, 0.5)
+	frame.Position = UDim2.new(0.5, 0, 0.5, 0)
+
+	local uicorner = Instance.new("UICorner")
+	uicorner.CornerRadius = UDim.new(0, radius)
+	uicorner.Parent = frame
+end
+
+-- Setup initial box
+applyModernStyling(dragFrame, 10)
+dragFrame.Size = UDim2.new(0, 350, 0, 200)
+dragFrame.Parent = gui
 dragFrame.Draggable = true
 dragFrame.Active = true
-dragFrame.Parent = gui
-dragFrame.BackgroundTransparency = 1
 
-keyBox.Size = UDim2.new(0, 200, 0, 50)
-keyBox.Position = UDim2.new(0.5, -100, 0.4, 0)
+-- KeyBox styling
+keyBox.Size = UDim2.new(0, 300, 0, 40)
+keyBox.Position = UDim2.new(0.5, 0, 0.3, 0)
+keyBox.AnchorPoint = Vector2.new(0.5, 0.5)
 keyBox.Text = "Enter Key"
+keyBox.BackgroundTransparency = 0.1
+keyBox.TextSize = 18
+applyModernStyling(keyBox, 8)
 keyBox.Parent = dragFrame
 
-keySubmit.Size = UDim2.new(0, 100, 0, 50)
-keySubmit.Position = UDim2.new(0.5, -50, 0.6, 0)
+-- Key submit button
+keySubmit.Size = UDim2.new(0, 150, 0, 40)
+keySubmit.Position = UDim2.new(0.5, 0, 0.55, 0)
+keySubmit.AnchorPoint = Vector2.new(0.5, 0.5)
 keySubmit.Text = "Submit"
+applyModernStyling(keySubmit, 8)
 keySubmit.Parent = dragFrame
 
-copyKeyButton.Size = UDim2.new(0, 200, 0, 50)
-copyKeyButton.Position = UDim2.new(0.5, -100, 0.8, 0)
+-- Copy key button
+copyKeyButton.Size = UDim2.new(0, 200, 0, 40)
+copyKeyButton.Position = UDim2.new(0.5, 0, 0.8, 0)
+copyKeyButton.AnchorPoint = Vector2.new(0.5, 0.5)
 copyKeyButton.Text = "Copy Key Access"
+applyModernStyling(copyKeyButton, 8)
 copyKeyButton.Parent = dragFrame
 
+-- Second box styling
+applyModernStyling(secondBox, 10)
+secondBox.Size = UDim2.new(0, 350, 0, 200)
+secondBox.Parent = gui
+secondBox.Draggable = true
+secondBox.Active = true
+
+-- Minimize and close buttons
 minimizeButton.Size = UDim2.new(0, 30, 0, 30)
-minimizeButton.Position = UDim2.new(1, -65, 0, 5)
+minimizeButton.Position = UDim2.new(1, -60, 0, 10)
 minimizeButton.Text = "-"
+applyModernStyling(minimizeButton, 15)
 minimizeButton.Parent = secondBox
 
 closeButton.Size = UDim2.new(0, 30, 0, 30)
-closeButton.Position = UDim2.new(1, -30, 0, 5)
+closeButton.Position = UDim2.new(1, -20, 0, 10)
 closeButton.Text = "X"
+applyModernStyling(closeButton, 15)
 closeButton.Parent = secondBox
 
-secondBox.Size = UDim2.new(0, 300, 0, 200)
-secondBox.Position = UDim2.new(0.5, -150, 0.5, -100)
-secondBox.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
-secondBox.AnchorPoint = Vector2.new(0.5, 0.5)
-secondBox.Visible = false
-secondBox.Draggable = true
-secondBox.Active = true
-secondBox.Parent = gui
-secondBox.BackgroundTransparency = 1
-
--- Functions
+-- Functions for animations
 local function fadeIn(frame)
-	local tween = TweenService:Create(frame, TweenInfo.new(fadeDuration), {BackgroundTransparency = 0})
-	tween:Play()
+	frame.Visible = true
+	TweenService:Create(frame, TweenInfo.new(fadeDuration), {BackgroundTransparency = 0}):Play()
 end
 
 local function fadeOut(frame, callback)
@@ -83,12 +111,12 @@ local function showSecondBox()
 	fadeIn(secondBox)
 end
 
--- Copy key to clipboard
+-- Copy key functionality
 copyKeyButton.MouseButton1Click:Connect(function()
 	setclipboard(clipboardKey)
 end)
 
--- Check for key submission
+-- Key submission
 keySubmit.MouseButton1Click:Connect(function()
 	if keyBox.Text == correctKey then
 		fadeOut(dragFrame, function()
@@ -101,9 +129,9 @@ end)
 local isMinimized = false
 minimizeButton.MouseButton1Click:Connect(function()
 	if not isMinimized then
-		secondBox:TweenSize(UDim2.new(0, 300, 0, 30), "Out", "Quad", fadeDuration)
+		secondBox:TweenSize(UDim2.new(0, 350, 0, 40), "Out", "Quad", fadeDuration)
 	else
-		secondBox:TweenSize(UDim2.new(0, 300, 0, 200), "Out", "Quad", fadeDuration)
+		secondBox:TweenSize(UDim2.new(0, 350, 0, 200), "Out", "Quad", fadeDuration)
 	end
 	isMinimized = not isMinimized
 end)
@@ -114,5 +142,4 @@ closeButton.MouseButton1Click:Connect(function()
 end)
 
 -- Initial fade-in
-dragFrame.Visible = true
 fadeIn(dragFrame)
